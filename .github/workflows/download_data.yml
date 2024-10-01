@@ -1,0 +1,41 @@
+name: Download Bitcoin Data Every Minute
+
+on:
+  schedule:
+    - cron: "*/1 * * * *"  # Ejecutar cada minuto
+
+jobs:
+  download_data:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        pip install yfinance pandas
+
+    - name: Download Bitcoin data
+      run: |
+        python -c "
+        import yfinance as yf
+        import pandas as pd
+        data = yf.download('BTC-USD', interval='1m', period='1d')
+        data.to_csv('btc_data.csv')
+        "
+
+    - name: Commit and push the CSV
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git add btc_data.csv
+        git commit -m 'Update BTC data'
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
