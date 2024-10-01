@@ -40,6 +40,7 @@ jobs:
         git pull origin main --rebase  # Obtener cambios del remoto antes de hacer commit
         git add btc_data.csv
         git commit -m 'Update BTC data' || echo "No changes to commit"
-        git push origin main
+        git push origin main --force  # Forzar el push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
