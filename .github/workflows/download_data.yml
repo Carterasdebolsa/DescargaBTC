@@ -2,7 +2,7 @@ name: download_data
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Ejecutar cada 5 minutos
+    - cron: '5 0 * * *'  # Ejecutar diariamente a las 00:05 UTC
   workflow_dispatch:  # Permite ejecutar manualmente el workflow
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
         python -c "
         import yfinance as yf
         import pandas as pd
-        data = yf.download('BTC-USD', interval='1m', period='1d')
+        data = yf.download('BTC-USD', interval='1d', period='max')  # Descargar datos diarios
         data.to_csv('btc_data.csv')
         "
 
