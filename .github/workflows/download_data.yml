@@ -1,8 +1,8 @@
-name: Download Bitcoin Data Every Minute
+name: download_data
 
 on:
   schedule:
-    - cron: "*/1 * * * *"  # Ejecutar cada minuto
+    - cron: "* * * * *"  # Ejecutar cada minuto
 
 jobs:
   download_data:
