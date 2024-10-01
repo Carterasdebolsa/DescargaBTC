@@ -32,8 +32,8 @@ jobs:
 
     - name: Commit and push the CSV
       run: |
-        git config --global user.name 'GitHub Actions'
-        git config --global user.email 'actions@github.com'
+        git config --local user.email "carterasdebolsa@gmail.com"
+        git config --local user.name "Carterasdebolsa"
         git add btc_data.csv
         git commit -m 'Update BTC data'
         git push
