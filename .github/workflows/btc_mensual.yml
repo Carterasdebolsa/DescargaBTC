@@ -28,7 +28,7 @@ jobs:
         python -c "
         import yfinance as yf
         import pandas as pd
-        data = yf.download('BTC-USD', period='max')  # Descargar datos 
+        data = yf.download('BTC-USD', interval='1mo', period='max')  # Descargar datos mensuales  
         data.to_csv('btc_data_monthly.csv')
         "
 
