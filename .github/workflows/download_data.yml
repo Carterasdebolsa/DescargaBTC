@@ -2,7 +2,7 @@ name: download_data
 
 on:
   schedule:
-    - cron: '5 0 * * *'  # Ejecutar diariamente a las 00:05 UTC
+    - cron: '0 * * * *'  # Ejecutar cada hora en el minuto 0
   workflow_dispatch:  # Permite ejecutar manualmente el workflow
 
 jobs:
@@ -11,10 +11,10 @@ jobs:
 
     steps:
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v3  # Actualizado a v3
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v4  # Actualizado a v4
       with:
         python-version: '3.12'
 
@@ -35,8 +35,10 @@ jobs:
       run: |
         git config --local user.email "carterasdebolsa@gmail.com"
         git config --local user.name "Carterasdebolsa"
+        git pull origin main  # Añadir esta línea para fusionar cambios remotos
         git add btc_data.csv
         git commit -m 'Update BTC data'
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
