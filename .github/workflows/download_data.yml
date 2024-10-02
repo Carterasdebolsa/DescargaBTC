@@ -2,8 +2,8 @@ name: download_data
 
 on:
   schedule:
-  - cron: '20 8 * * *'
-    #- cron: '0 * * * *'  # Ejecutar cada hora en el minuto 0
+  
+  - cron: '0 * * * *'  # Ejecutar cada hora en el minuto 0
   workflow_dispatch:  # Permite ejecutar manualmente el workflow
 
 jobs:
