@@ -1,0 +1,44 @@
+name: btc_mensual
+
+on:
+  schedule:
+  
+  - cron: '0 * * * *'  # Ejecutar cada hora en el minuto 0
+  workflow_dispatch:  # Permite ejecutar manualmente el workflow
+
+jobs:
+  download_data:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3  # Actualizado a v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4  # Actualizado a v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        pip install yfinance pandas
+
+    - name: Download Bitcoin data monthly
+      run: |
+        python -c "
+        import yfinance as yf
+        import pandas as pd
+        data = yf.download('BTC-USD', interval='1M', period='max')  # Descargar datos diarios
+        data.to_csv('btc_data_monthly.csv')
+        "
+
+    - name: Commit and push the CSV
+      run: |
+        git config --local user.email "carterasdebolsa@gmail.com"
+        git config --local user.name "Carterasdebolsa"
+        git pull origin main  # Añadir esta línea para fusionar cambios remotos
+        git add btc_data_monthly.csv
+        git commit -m 'Update BTC data monthly'
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
