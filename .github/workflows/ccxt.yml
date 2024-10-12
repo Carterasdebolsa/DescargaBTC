@@ -30,7 +30,7 @@ jobs:
 
           exchange =  ccxt.kraken()
 
-          def fetch_bitcoin_data(symbol='BTC/USDT', since=None):
+          def fetch_bitcoin_data(symbol='BTC/USD', since=None):
               ohlcv = exchange.fetch_ohlcv(symbol, timeframe='1d', since=since)
               df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
               df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
