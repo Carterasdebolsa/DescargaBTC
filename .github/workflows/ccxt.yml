@@ -28,7 +28,7 @@ jobs:
           import pandas as pd
           from datetime import datetime, timedelta
 
-          exchange =  ccxt.kraken()
+          exchange = ccxt.kraken()
 
           def fetch_bitcoin_data(symbol='BTC/USD', since=None):
               ohlcv = exchange.fetch_ohlcv(symbol, timeframe='1d', since=since)
@@ -44,15 +44,27 @@ jobs:
               except FileNotFoundError:
                   last_date = datetime.utcnow() - timedelta(days=365)
                   df_existing = pd.DataFrame()
-              
+
               since = int((last_date + timedelta(days=1)).timestamp() * 1000)
               df_new = fetch_bitcoin_data(since=since)
-              
+
               df_combined = pd.concat([df_existing, df_new]).drop_duplicates(subset='timestamp', keep='last')
               df_combined = df_combined.sort_values(by='timestamp')
-              
+
               df_combined.to_csv(file_path, index=False)
               print(f'Archivo {file_path} actualizado con los datos más recientes.')
 
           update_output_csv('Output.csv')
           "
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.email "tu-email@example.com"
+          git config --global user.name "Tu Nombre"
+          git add Output.csv
+          git commit -m "Update Output.csv with the latest Bitcoin data"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          
