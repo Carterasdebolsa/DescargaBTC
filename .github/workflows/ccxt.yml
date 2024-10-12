@@ -1,0 +1,58 @@
+name: Actualizar Bitcoin Data
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Ejecuta la acción cada hora
+  workflow_dispatch: # Permite ejecutar la acción manualmente desde GitHub
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x' # Cambia a la versión de Python que necesites
+
+      - name: Instalar dependencias
+        run: pip install ccxt pandas
+
+      - name: Ejecutar script de actualización
+        run: |
+          python -c "
+          import ccxt
+          import pandas as pd
+          from datetime import datetime, timedelta
+
+          exchange = ccxt.binance()
+
+          def fetch_bitcoin_data(symbol='BTC/USDT', since=None):
+              ohlcv = exchange.fetch_ohlcv(symbol, timeframe='1d', since=since)
+              df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+              df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+              return df
+
+          def update_output_csv(file_path='output.csv'):
+              try:
+                  df_existing = pd.read_csv(file_path)
+                  df_existing['timestamp'] = pd.to_datetime(df_existing['timestamp'])
+                  last_date = df_existing['timestamp'].max()
+              except FileNotFoundError:
+                  last_date = datetime.utcnow() - timedelta(days=365)
+                  df_existing = pd.DataFrame()
+              
+              since = int((last_date + timedelta(days=1)).timestamp() * 1000)
+              df_new = fetch_bitcoin_data(since=since)
+              
+              df_combined = pd.concat([df_existing, df_new]).drop_duplicates(subset='timestamp', keep='last')
+              df_combined = df_combined.sort_values(by='timestamp')
+              
+              df_combined.to_csv(file_path, index=False)
+              print(f'Archivo {file_path} actualizado con los datos más recientes.')
+
+          update_output_csv('output.csv')
+          "
