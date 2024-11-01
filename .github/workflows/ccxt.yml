@@ -27,15 +27,12 @@ jobs:
           import ccxt
           import pandas as pd
           from datetime import datetime, timedelta
-
           exchange = ccxt.kraken()
-
           def fetch_bitcoin_data(symbol='BTC/USD', since=None):
               ohlcv = exchange.fetch_ohlcv(symbol, timeframe='1d', since=since)
               df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
               df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
               return df
-
           def update_output_csv(file_path='Output.csv'):
               try:
                   df_existing = pd.read_csv(file_path)
@@ -44,27 +41,27 @@ jobs:
               except FileNotFoundError:
                   last_date = datetime.utcnow() - timedelta(days=365)
                   df_existing = pd.DataFrame()
-
               since = int((last_date + timedelta(days=1)).timestamp() * 1000)
               df_new = fetch_bitcoin_data(since=since)
-
               df_combined = pd.concat([df_existing, df_new]).drop_duplicates(subset='timestamp', keep='last')
               df_combined = df_combined.sort_values(by='timestamp')
-
               df_combined.to_csv(file_path, index=False)
               print(f'Archivo {file_path} actualizado con los datos más recientes.')
-
           update_output_csv('Output.csv')
           "
-
-      - name: Commit and push changes
+      - name: Configurar git
         run: |
           git config --global user.email "carterasdebolsa@gmail.com"
           git config --global user.name "Carterasdebolsa"
+
+      - name: Pull latest changes
+        run: |
+          git pull origin main || echo "No hay cambios para fusionar."
+
+      - name: Commit and push changes
+        run: |
           git add Output.csv
           git commit -m "Update Output.csv on $(date)"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          
