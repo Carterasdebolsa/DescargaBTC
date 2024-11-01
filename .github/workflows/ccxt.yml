@@ -2,7 +2,7 @@ name: Actualizar Bitcoin Data
 
 on:
   schedule:
-    - cron: '0 * * * *' # Ejecuta la acción cada hora
+       - cron: '0 0 * * *' # Ejecuta la acción diariamente a medianoche UTC
   workflow_dispatch: # Permite ejecutar la acción manualmente desde GitHub
 
 jobs:
