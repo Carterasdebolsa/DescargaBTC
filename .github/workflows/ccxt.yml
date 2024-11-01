@@ -28,7 +28,7 @@ jobs:
           import pandas as pd
           from datetime import datetime, timedelta
 
-          exchange = ccxt.kraken()
+          exchange = ccxt.binance()
 
           def fetch_bitcoin_data(symbol='BTC/USD', since=None):
               ohlcv = exchange.fetch_ohlcv(symbol, timeframe='1d', since=since)
