@@ -2,7 +2,7 @@ name: Actualizar Bitcoin Data
 
 on:
   schedule:
-    - cron: '0 * * * *' # Ejecuta la acción cada hora
+       - cron: '0 0 * * *' # Ejecuta la acción diariamente a medianoche UTC
   workflow_dispatch: # Permite ejecutar la acción manualmente desde GitHub
 
 jobs:
@@ -11,10 +11,10 @@ jobs:
     
     steps:
       - name: Checkout del repositorio
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configurar Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x' # Cambia a la versión de Python que necesites
 
@@ -27,55 +27,44 @@ jobs:
           import ccxt
           import pandas as pd
           from datetime import datetime, timedelta
+
           exchange = ccxt.kraken()
+
           def fetch_bitcoin_data(symbol='BTC/USD', since=None):
               ohlcv = exchange.fetch_ohlcv(symbol, timeframe='1d', since=since)
               df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
               df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
               return df
+
           def update_output_csv(file_path='Output.csv'):
               try:
                   df_existing = pd.read_csv(file_path)
                   df_existing['timestamp'] = pd.to_datetime(df_existing['timestamp'])
+                  last_date = df_existing['timestamp'].max()
               except FileNotFoundError:
+                  last_date = datetime.utcnow() - timedelta(days=365)
                   df_existing = pd.DataFrame()
-              
-              last_date = df_existing['timestamp'].max() if not df_existing.empty else datetime.utcnow() - timedelta(days=365)
+
               since = int((last_date + timedelta(days=1)).timestamp() * 1000)
               df_new = fetch_bitcoin_data(since=since)
 
-              df_existing = df_existing[df_existing['timestamp'].dt.date != datetime.utcnow().date()]
               df_combined = pd.concat([df_existing, df_new]).drop_duplicates(subset='timestamp', keep='last')
               df_combined = df_combined.sort_values(by='timestamp')
+
               df_combined.to_csv(file_path, index=False)
               print(f'Archivo {file_path} actualizado con los datos más recientes.')
-          
+
           update_output_csv('Output.csv')
           "
 
-      - name: Configurar git
+      - name: Commit and push changes
         run: |
           git config --global user.email "carterasdebolsa@gmail.com"
           git config --global user.name "Carterasdebolsa"
-      
-      - name: Commit and push changes
-        run: |
           git add Output.csv
-          if git diff --cached --quiet; then
-            echo "No hay cambios en Output.csv. No se realizará el commit."
-          else
-            git commit -m "Update Output.csv on $(date)"
-            
-            # Sincronizar con el repositorio remoto antes del push
-            git pull --rebase origin main
-            
-            # Verifica si el pull fue exitoso
-            if [ $? -ne 0 ]; then
-              echo "Error al hacer pull, revisa los conflictos."
-              exit 1
-            fi
-            
-            git push
-          fi
+          git commit -m "Update Output.csv on $(date)"
+          git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          
