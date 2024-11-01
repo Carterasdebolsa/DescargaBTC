@@ -40,43 +40,41 @@ jobs:
               except FileNotFoundError:
                   df_existing = pd.DataFrame()
               
-              # Establece la fecha desde la cual obtener datos
               last_date = df_existing['timestamp'].max() if not df_existing.empty else datetime.utcnow() - timedelta(days=365)
               since = int((last_date + timedelta(days=1)).timestamp() * 1000)
-
-              # Obtiene los datos nuevos desde la API
               df_new = fetch_bitcoin_data(since=since)
 
-              # Elimina los datos del día actual si ya existen en el archivo
               df_existing = df_existing[df_existing['timestamp'].dt.date != datetime.utcnow().date()]
-
-              # Combina los datos existentes con los nuevos y elimina duplicados por fecha
               df_combined = pd.concat([df_existing, df_new]).drop_duplicates(subset='timestamp', keep='last')
               df_combined = df_combined.sort_values(by='timestamp')
-
-              # Guarda el archivo actualizado
               df_combined.to_csv(file_path, index=False)
               print(f'Archivo {file_path} actualizado con los datos más recientes.')
           
           update_output_csv('Output.csv')
           "
 
-      - name: Commit and push changes
+      - name: Configurar git
         run: |
           git config --global user.email "carterasdebolsa@gmail.com"
           git config --global user.name "Carterasdebolsa"
-          
-          # Agrega el archivo al índice de Git
+      
+      - name: Commit and push changes
+        run: |
           git add Output.csv
-          
-          # Comprobar si hay cambios y hacer el commit
           if git diff --cached --quiet; then
             echo "No hay cambios en Output.csv. No se realizará el commit."
           else
             git commit -m "Update Output.csv on $(date)"
             
             # Sincronizar con el repositorio remoto antes del push
-            git pull --rebase origin main || { echo 'Error al hacer pull, cancelando el push.'; exit 1; }
+            git pull --rebase origin main
+            
+            # Verifica si el pull fue exitoso
+            if [ $? -ne 0 ]; then
+              echo "Error al hacer pull, revisa los conflictos."
+              exit 1
+            fi
+            
             git push
           fi
         env:
