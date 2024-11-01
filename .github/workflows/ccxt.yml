@@ -62,7 +62,7 @@ jobs:
           git config --global user.email "carterasdebolsa@gmail.com"
           git config --global user.name "Carterasdebolsa"
           git add Output.csv
-          git commit -m "Update Output.csv with the latest Bitcoin data"
+          git commit -m "Update Output.csv on $(date)"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
