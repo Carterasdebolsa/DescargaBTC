@@ -2,7 +2,7 @@ name: Actualizar Bitcoin Data
 
 on:
   schedule:
-       - cron: '0 0 * * *' # Ejecuta la acción diariamente a medianoche UTC
+    - cron: '0 * * * *' # Ejecuta la acción cada hora
   workflow_dispatch: # Permite ejecutar la acción manualmente desde GitHub
 
 jobs:
@@ -11,10 +11,10 @@ jobs:
     
     steps:
       - name: Checkout del repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Configurar Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x' # Cambia a la versión de Python que necesites
 
@@ -26,8 +26,7 @@ jobs:
           python -c "
           import ccxt
           import pandas as pd
-          from datetime import datetime, timedelta
-
+          from datetime import datetime
           exchange = ccxt.kraken()
 
           def fetch_bitcoin_data(symbol='BTC/USD', since=None):
@@ -42,21 +41,18 @@ jobs:
                   df_existing['timestamp'] = pd.to_datetime(df_existing['timestamp'])
                   last_date = df_existing['timestamp'].max()
               except FileNotFoundError:
-                  last_date = datetime.utcnow() - timedelta(days=365)
+                  last_date = datetime.utcnow()  # Usar la fecha actual si no existe el archivo
                   df_existing = pd.DataFrame()
 
-              since = int((last_date + timedelta(days=1)).timestamp() * 1000)
+              since = int(last_date.timestamp() * 1000)  # Buscar datos desde la última fecha registrada
               df_new = fetch_bitcoin_data(since=since)
-
               df_combined = pd.concat([df_existing, df_new]).drop_duplicates(subset='timestamp', keep='last')
               df_combined = df_combined.sort_values(by='timestamp')
-
               df_combined.to_csv(file_path, index=False)
               print(f'Archivo {file_path} actualizado con los datos más recientes.')
 
           update_output_csv('Output.csv')
           "
-
       - name: Commit and push changes
         run: |
           git config --global user.email "carterasdebolsa@gmail.com"
@@ -66,5 +62,3 @@ jobs:
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          
