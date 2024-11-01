@@ -76,7 +76,7 @@ jobs:
             git commit -m "Update Output.csv on $(date)"
             
             # Sincronizar con el repositorio remoto antes del push
-            git pull --rebase origin main
+            git pull --rebase origin main || { echo 'Error al hacer pull, cancelando el push.'; exit 1; }
             git push
           fi
         env:
